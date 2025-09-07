@@ -35,8 +35,7 @@
               "title": "electra aeon prompt"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -110,7 +109,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "electra aeon prompt.md",
+                "file": "electra test.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -120,7 +119,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for electra aeon prompt"
+              "title": "Backlinks for electra test"
             }
           },
           {
@@ -129,12 +128,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "electra aeon prompt.md",
+                "file": "electra test.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from electra aeon prompt"
+              "title": "Outgoing links from electra test"
             }
           },
           {
@@ -158,13 +157,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "electra aeon prompt.md",
+                "file": "electra test.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of electra aeon prompt"
+              "title": "Outline of electra test"
             }
           }
         ]
@@ -185,9 +184,12 @@
       "bases:Create new base": false
     }
   },
-  "active": "81650d136246dc63",
+  "active": "8def65dd9f3d732d",
   "lastOpenFiles": [
     "electra aeon prompt.md",
-    "electra test.md"
+    "electra test.md",
+    "Ouroboros_iteration_with_inline_footnotes.md",
+    "Untitled.md",
+    "hmm.md"
   ]
 }

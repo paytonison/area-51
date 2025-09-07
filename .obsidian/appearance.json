@@ -1,1 +1,10 @@
-{}
+{
+  "accentColor": "",
+  "cssTheme": "",
+  "textFontFamily": "Helvetica Neue",
+  "monospaceFontFamily": "JetBrains Mono",
+  "interfaceFontFamily": "Helvetica Neue",
+  "baseFontSize": 16,
+  "showRibbon": false,
+  "showViewHeader": false
+}
