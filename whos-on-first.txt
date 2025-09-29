@@ -1,0 +1,729 @@
+Last login: Sun Sep 28 15:06:27 on ttys000
+(base) paytonison@Asari ~ % cd area-51 
+(base) paytonison@Asari area-51 % ls
+(base) paytonison@Asari area-51 % git push
+Everything up-to-date
+(base) paytonison@Asari area-51 % git commit -m "1"
+[main dd424fa] 1
+ 3 files changed, 0 insertions(+), 0 deletions(-)
+ delete mode 100644 "Braided Timeline: From Einstein\342\200\231s Space Physics \342\206\222 Toward Time Physics.png"
+ delete mode 100644 "From Einstein\342\200\231s Space Physics \342\206\222 Toward Time Physics.png"
+(base) paytonison@Asari area-51 % git push
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 358 bytes | 358.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/paytonison/area-51.git
+   b2070f3..dd424fa  main -> main
+(base) paytonison@Asari area-51 % gb
+* main
+(base) paytonison@Asari area-51 % gs
+## main...origin/main
+(base) paytonison@Asari area-51 % cheat        
+##### ─────────────────────────  Asari Git Pack  ───────────────────────── #####
+
+# --- One-time sane defaults (run once; harmless if repeated) ---
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global rebase.autosquash true
+git config --global rebase.autostash true
+git config --global rerere.enabled true
+git config --global fetch.prune true
+git config --global diff.algorithm histogram
+git config --global core.fileMode false
+
+# --- Aliases you’ll actually use ---
+alias gs='git status -sb'
+alias gb='git branch --sort=-committerdate'
+alias gco='git checkout'
+alias gsw='git switch'
+alias gl='git log --oneline --graph --decorate --all'
+alias gd='git diff'
+alias gdc='git diff --cached'
+alias ga='git add -A'
+alias gap='git add -p'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gca='git commit --amend --no-edit'
+alias gpf='git push --force-with-lease'
+alias gp='git push'
+alias gpu='git push -u origin HEAD'
+alias gpl='git pull --rebase --autostash'
+alias gf='git fetch -p'
+alias grb='git rebase -i --autosquash'
+alias grc='git rebase --continue'
+alias gra='git rebase --abort'
+alias grs='git restore'
+alias gsta='git stash push -u -m'
+alias gstp='git stash pop'
+alias gclean='git fetch -p && git remote prune origin && git gc --prune=now'
+alias gtags='git tag -n --sort=-creatordate | head -50'
+
+# --- Helpful functions ---
+# Create a new branch off up-to-date origin/main
+gnew() {
+  [ -z "$1" ] && { echo "usage: gnew <branch-name>"; return 1; }
+  git fetch origin && git switch -c "$1" origin/main
+}
+
+# Rebase current branch onto origin/main (fast path)
+grbase() {
+  git fetch origin && git rebase origin/main
+}
+
+# Clean up local branches already merged into origin/main
+gclean-merged() {
+  git fetch origin
+  git branch --merged origin/main | sed -e '/^\*/d' -e '/ main$/d' -e '/ master$/d' \
+  | xargs -n 1 git branch -d 2>/dev/null
+}
+
+# Soft-undo last commit (keep changes staged)
+gundo() {
+  git reset --soft HEAD~1
+}
+
+# --- The cheat sheet (prints only; safe to run anywhere) ---
+cheat() {
+  cat <<'EOF'
+# =========================
+# Git Cheatsheet (Asari v2)
+# =========================
+# Philosophy: keep history linear, commits meaningful, and rollback easy.
+
+# ── Status & history ───────────────────────────────────────────────────────────
+git status -sb
+git log --oneline --graph --decorate --all
+git show <ref>                 # e.g. HEAD~1, <sha>
+git diff                       # unstaged vs working tree
+git diff --staged              # staged vs HEAD
+git shortlog -sn               # author commit counts
+
+# ── Branches ───────────────────────────────────────────────────────────────────
+git switch -c my-branch        # create + switch
+git switch my-branch           # switch
+git branch -m new-name         # rename current branch
+git branch -d old-branch       # delete merged local
+git branch -D old-branch       # force delete local
+git push -u origin my-branch   # push & set upstream
+git push origin --delete old-branch   # delete remote branch
+
+# ── Daily flow (linear, low drama) ─────────────────────────────────────────────
+git add -p
+git commit -m "type(scope): message"
+git pull --rebase              # replay commits on latest
+git push
+
+# ── Polish before PR ──────────────────────────────────────────────────────────
+git commit --amend --no-edit   # add staged changes to last commit
+git commit --fixup <commit>    # "fixup!" commit targeting <commit>
+git rebase -i --autosquash origin/main
+
+# ── Keep branch fresh ─────────────────────────────────────────────────────────
+git fetch origin
+git rebase origin/main
+# If conflicts: edit files → git add <files> → git rebase --continue
+# Abort if needed: git rebase --abort
+
+# ── Squash a feature branch to ONE commit ─────────────────────────────────────
+git fetch origin
+git reset --soft $(git merge-base HEAD origin/main)
+git commit -m "feat: X"
+git push --force-with-lease
+
+# ── Conflict quick picks ──────────────────────────────────────────────────────
+git add <file>               # mark resolved
+git rebase --continue        # or: git merge --continue
+git restore --staged <file>  # unstage if wrong
+git checkout --ours  -- <file>   # take our side
+git checkout --theirs -- <file>  # take their side
+
+# ── Undo & recovery (don’t panic) ─────────────────────────────────────────────
+git restore <file>                 # drop WORKTREE changes
+git restore --staged <file>        # unstage
+git reset --soft HEAD~1            # keep changes, move HEAD back
+git reset --hard HEAD~1            # nuke last commit (danger)
+git revert <sha>                   # safe inverse commit (use on shared branches)
+git reflog                         # find lost SHAs / undo disasters
+
+# ── Cherry-pick / patch ───────────────────────────────────────────────────────
+git cherry-pick <sha>              # apply one commit
+git cherry-pick <a>^..<b>          # apply range a..b inclusive
+git format-patch -1 <sha>          # make patch
+git am <patch.mbox>                # apply patch
+
+# ── Tags & releases ───────────────────────────────────────────────────────────
+git tag -a v1.2.3 -m "v1.2.3"
+git push origin v1.2.3
+git push --tags
+
+# ── Remotes & housekeeping ────────────────────────────────────────────────────
+git remote -v
+git fetch -p
+git remote prune origin
+git gc --prune=now                 # clean up (avoid --aggressive on huge repos)
+
+# ── Search / blame / bisect ───────────────────────────────────────────────────
+git grep -n "needle"
+git blame -L :42 file.py
+git bisect start; git bisect bad; git bisect good <sha>
+# mark good/bad commits, then: git bisect reset
+
+# ── PR workflow (GitHub buttons) ──────────────────────────────────────────────
+# Merge: preserves branch; noisy history.
+# Squash: ONE commit on base (best default).
+# Rebase: replay PR commits on base (clean, keeps steps).
+
+# ── Config that saves lives ───────────────────────────────────────────────────
+git config --global pull.rebase true
+git config --global rebase.autosquash true
+git config --global rerere.enabled true
+git config --global fetch.prune true
+git config --global init.defaultBranch main
+
+# ── One-liners ────────────────────────────────────────────────────────────────
+git log --oneline --decorate --graph --all
+git branch --merged origin/main | sed -e '/^\*/d' -e '/ main$/d' -e '/ master$/d' \
+  | xargs -n 1 git branch -d
+git blame -L 100,160 PATH
+git add -p PATH
+EOF
+}
+##### ───────────────────────  end Asari Git Pack  ─────────────────────── #####
+(base) paytonison@Asari area-51 % git switch -c who
+Switched to a new branch 'who'
+(base) paytonison@Asari area-51 % gm 
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % git switch who
+Switched to branch 'who'
+(base) paytonison@Asari area-51 % nvim naturally.txt
+(base) paytonison@Asari area-51 % gs
+## who
+?? naturally.txt
+(base) paytonison@Asari area-51 % gb
+  main
+* who
+(base) paytonison@Asari area-51 % git add .
+(base) paytonison@Asari area-51 % git commit -m "m"
+[who 765098c] m
+ 1 file changed, 14 insertions(+)
+ create mode 100644 naturally.txt
+(base) paytonison@Asari area-51 % git push
+fatal: The current branch who has no upstream branch.
+To push the current branch and set the remote as upstream, use
+
+    git push --set-upstream origin who
+
+To have this happen automatically for branches without a tracking
+upstream, see 'push.autoSetupRemote' in 'git help config'.
+
+(base) paytonison@Asari area-51 % git push --set-upstream origin who
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 486 bytes | 486.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: 
+remote: Create a pull request for 'who' on GitHub by visiting:
+remote:      https://github.com/paytonison/area-51/pull/new/who
+remote: 
+To https://github.com/paytonison/area-51.git
+ * [new branch]      who -> who
+branch 'who' set up to track 'origin/who'.
+(base) paytonison@Asari area-51 % gs
+## who...origin/who
+(base) paytonison@Asari area-51 % gv
+zsh: command not found: gv
+(base) paytonison@Asari area-51 % gb
+  main
+* who
+(base) paytonison@Asari area-51 % gm           
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % git switch who
+Switched to branch 'who'
+Your branch is up to date with 'origin/who'.
+(base) paytonison@Asari area-51 % cheat 
+##### ─────────────────────────  Asari Git Pack  ───────────────────────── #####
+
+# --- One-time sane defaults (run once; harmless if repeated) ---
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global rebase.autosquash true
+git config --global rebase.autostash true
+git config --global rerere.enabled true
+git config --global fetch.prune true
+git config --global diff.algorithm histogram
+git config --global core.fileMode false
+
+# --- Aliases you’ll actually use ---
+alias gs='git status -sb'
+alias gb='git branch --sort=-committerdate'
+alias gco='git checkout'
+alias gsw='git switch'
+alias gl='git log --oneline --graph --decorate --all'
+alias gd='git diff'
+alias gdc='git diff --cached'
+alias ga='git add -A'
+alias gap='git add -p'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gca='git commit --amend --no-edit'
+alias gpf='git push --force-with-lease'
+alias gp='git push'
+alias gpu='git push -u origin HEAD'
+alias gpl='git pull --rebase --autostash'
+alias gf='git fetch -p'
+alias grb='git rebase -i --autosquash'
+alias grc='git rebase --continue'
+alias gra='git rebase --abort'
+alias grs='git restore'
+alias gsta='git stash push -u -m'
+alias gstp='git stash pop'
+alias gclean='git fetch -p && git remote prune origin && git gc --prune=now'
+alias gtags='git tag -n --sort=-creatordate | head -50'
+
+# --- Helpful functions ---
+# Create a new branch off up-to-date origin/main
+gnew() {
+  [ -z "$1" ] && { echo "usage: gnew <branch-name>"; return 1; }
+  git fetch origin && git switch -c "$1" origin/main
+}
+
+# Rebase current branch onto origin/main (fast path)
+grbase() {
+  git fetch origin && git rebase origin/main
+}
+
+# Clean up local branches already merged into origin/main
+gclean-merged() {
+  git fetch origin
+  git branch --merged origin/main | sed -e '/^\*/d' -e '/ main$/d' -e '/ master$/d' \
+  | xargs -n 1 git branch -d 2>/dev/null
+}
+
+# Soft-undo last commit (keep changes staged)
+gundo() {
+  git reset --soft HEAD~1
+}
+
+# --- The cheat sheet (prints only; safe to run anywhere) ---
+cheat() {
+  cat <<'EOF'
+# =========================
+# Git Cheatsheet (Asari v2)
+# =========================
+# Philosophy: keep history linear, commits meaningful, and rollback easy.
+
+# ── Status & history ───────────────────────────────────────────────────────────
+git status -sb
+git log --oneline --graph --decorate --all
+git show <ref>                 # e.g. HEAD~1, <sha>
+git diff                       # unstaged vs working tree
+git diff --staged              # staged vs HEAD
+git shortlog -sn               # author commit counts
+
+# ── Branches ───────────────────────────────────────────────────────────────────
+git switch -c my-branch        # create + switch
+git switch my-branch           # switch
+git branch -m new-name         # rename current branch
+git branch -d old-branch       # delete merged local
+git branch -D old-branch       # force delete local
+git push -u origin my-branch   # push & set upstream
+git push origin --delete old-branch   # delete remote branch
+
+# ── Daily flow (linear, low drama) ─────────────────────────────────────────────
+git add -p
+git commit -m "type(scope): message"
+git pull --rebase              # replay commits on latest
+git push
+
+# ── Polish before PR ──────────────────────────────────────────────────────────
+git commit --amend --no-edit   # add staged changes to last commit
+git commit --fixup <commit>    # "fixup!" commit targeting <commit>
+git rebase -i --autosquash origin/main
+
+# ── Keep branch fresh ─────────────────────────────────────────────────────────
+git fetch origin
+git rebase origin/main
+# If conflicts: edit files → git add <files> → git rebase --continue
+# Abort if needed: git rebase --abort
+
+# ── Squash a feature branch to ONE commit ─────────────────────────────────────
+git fetch origin
+git reset --soft $(git merge-base HEAD origin/main)
+git commit -m "feat: X"
+git push --force-with-lease
+
+# ── Conflict quick picks ──────────────────────────────────────────────────────
+git add <file>               # mark resolved
+git rebase --continue        # or: git merge --continue
+git restore --staged <file>  # unstage if wrong
+git checkout --ours  -- <file>   # take our side
+git checkout --theirs -- <file>  # take their side
+
+# ── Undo & recovery (don’t panic) ─────────────────────────────────────────────
+git restore <file>                 # drop WORKTREE changes
+git restore --staged <file>        # unstage
+git reset --soft HEAD~1            # keep changes, move HEAD back
+git reset --hard HEAD~1            # nuke last commit (danger)
+git revert <sha>                   # safe inverse commit (use on shared branches)
+git reflog                         # find lost SHAs / undo disasters
+
+# ── Cherry-pick / patch ───────────────────────────────────────────────────────
+git cherry-pick <sha>              # apply one commit
+git cherry-pick <a>^..<b>          # apply range a..b inclusive
+git format-patch -1 <sha>          # make patch
+git am <patch.mbox>                # apply patch
+
+# ── Tags & releases ───────────────────────────────────────────────────────────
+git tag -a v1.2.3 -m "v1.2.3"
+git push origin v1.2.3
+git push --tags
+
+# ── Remotes & housekeeping ────────────────────────────────────────────────────
+git remote -v
+git fetch -p
+git remote prune origin
+git gc --prune=now                 # clean up (avoid --aggressive on huge repos)
+
+# ── Search / blame / bisect ───────────────────────────────────────────────────
+git grep -n "needle"
+git blame -L :42 file.py
+git bisect start; git bisect bad; git bisect good <sha>
+# mark good/bad commits, then: git bisect reset
+
+# ── PR workflow (GitHub buttons) ──────────────────────────────────────────────
+# Merge: preserves branch; noisy history.
+# Squash: ONE commit on base (best default).
+# Rebase: replay PR commits on base (clean, keeps steps).
+
+# ── Config that saves lives ───────────────────────────────────────────────────
+git config --global pull.rebase true
+git config --global rebase.autosquash true
+git config --global rerere.enabled true
+git config --global fetch.prune true
+git config --global init.defaultBranch main
+
+# ── One-liners ────────────────────────────────────────────────────────────────
+git log --oneline --decorate --graph --all
+git branch --merged origin/main | sed -e '/^\*/d' -e '/ main$/d' -e '/ master$/d' \
+  | xargs -n 1 git branch -d
+git blame -L 100,160 PATH
+git add -p PATH
+EOF
+}
+##### ───────────────────────  end Asari Git Pack  ─────────────────────── #####
+(base) paytonison@Asari area-51 % git switch -c what
+Switched to a new branch 'what'
+(base) paytonison@Asari area-51 % gs
+## what
+(base) paytonison@Asari area-51 % gb
+  main
+* what
+  who
+(base) paytonison@Asari area-51 % git push -u origin what
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: 
+remote: Create a pull request for 'what' on GitHub by visiting:
+remote:      https://github.com/paytonison/area-51/pull/new/what
+remote: 
+To https://github.com/paytonison/area-51.git
+ * [new branch]      what -> what
+branch 'what' set up to track 'origin/what'.
+(base) paytonison@Asari area-51 % git rebase who
+Current branch what is up to date.
+(base) paytonison@Asari area-51 % ls
+naturally.txt
+(base) paytonison@Asari area-51 % gm             
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % ls
+(base) paytonison@Asari area-51 % git switch who
+Switched to branch 'who'
+Your branch is up to date with 'origin/who'.
+(base) paytonison@Asari area-51 % gm  
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % git merge who
+Updating dd424fa..765098c
+Fast-forward
+ naturally.txt | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 naturally.txt
+(base) paytonison@Asari area-51 % git push
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/paytonison/area-51.git
+   dd424fa..765098c  main -> main
+(base) paytonison@Asari area-51 % ls
+naturally.txt
+(base) paytonison@Asari area-51 % git switch who
+Switched to branch 'who'
+Your branch is up to date with 'origin/who'.
+(base) paytonison@Asari area-51 % ls
+naturally.txt
+(base) paytonison@Asari area-51 % git switch what
+Switched to branch 'what'
+Your branch is up to date with 'origin/what'.
+(base) paytonison@Asari area-51 % ls
+naturally.txt
+(base) paytonison@Asari area-51 % nvim tomorrow.txt
+(base) paytonison@Asari area-51 % ls
+naturally.txt	tomorrow.txt
+(base) paytonison@Asari area-51 % git switch what
+Already on 'what'
+Your branch is up to date with 'origin/what'.
+(base) paytonison@Asari area-51 % gs       
+## what...origin/what
+?? tomorrow.txt
+(base) paytonison@Asari area-51 % gb
+  main
+* what
+  who
+(base) paytonison@Asari area-51 % git add .
+(base) paytonison@Asari area-51 % git commit -m "m"
+[what 5bfc45b] m
+ 1 file changed, 3 insertions(+)
+ create mode 100644 tomorrow.txt
+(base) paytonison@Asari area-51 % git push
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 481 bytes | 481.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/paytonison/area-51.git
+   765098c..5bfc45b  what -> what
+(base) paytonison@Asari area-51 % gs
+## what...origin/what
+(base) paytonison@Asari area-51 % gb
+  main
+* what
+  who
+(base) paytonison@Asari area-51 % git branch -c i-dont-know
+(base) paytonison@Asari area-51 % gs
+## what...origin/what
+(base) paytonison@Asari area-51 % gm
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % gb
+  i-dont-know
+* main
+  what
+  who
+(base) paytonison@Asari area-51 % git switch i-dont-know
+Switched to branch 'i-dont-know'
+Your branch is up to date with 'origin/what'.
+(base) paytonison@Asari area-51 % ls        
+naturally.txt	tomorrow.txt
+(base) paytonison@Asari area-51 % git rebase main
+Current branch i-dont-know is up to date.
+(base) paytonison@Asari area-51 % gm
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % ls
+naturally.txt
+(base) paytonison@Asari area-51 % git switch i-dont-know
+Switched to branch 'i-dont-know'
+Your branch is up to date with 'origin/what'.
+(base) paytonison@Asari area-51 % ls
+naturally.txt	tomorrow.txt
+(base) paytonison@Asari area-51 % rm naturally.txt 
+(base) paytonison@Asari area-51 % git add .
+(base) paytonison@Asari area-51 % git commit -m "m"
+[i-dont-know 9ce74a0] m
+ 1 file changed, 14 deletions(-)
+ delete mode 100644 naturally.txt
+(base) paytonison@Asari area-51 % git push
+fatal: The upstream branch of your current branch does not match
+the name of your current branch.  To push to the upstream branch
+on the remote, use
+
+    git push origin HEAD:what
+
+To push to the branch of the same name on the remote, use
+
+    git push origin HEAD
+
+To choose either option permanently, see push.default in 'git help config'.
+
+To avoid automatically configuring an upstream branch when its name
+won't match the local branch, see option 'simple' of branch.autoSetupMerge
+in 'git help config'.
+
+(base) paytonison@Asari area-51 % git log
+commit 9ce74a098e70e44693c0e0f0da979d44731f10a8 (HEAD -> i-dont-know)
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 28 21:36:35 2025 -0600
+
+    m
+
+commit 5bfc45bdf2f9ed4a8d740de5d07c4cf7c5904dba (origin/what, what)
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 28 21:34:44 2025 -0600
+
+    m
+
+commit 765098cff54c1c89692b8d1248d532c394bd5eb0 (origin/who, origin/main, origin/HEAD, who, main)
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 28 21:29:51 2025 -0600
+
+    m
+
+commit dd424fa737ee27f070346971c1c4541dcccde92c
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 28 21:28:22 2025 -0600
+
+    1
+
+commit b2070f3a8ca2acd7f37eddc0b66474fc1e81fc87
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 21 22:59:08 2025 -0600
+
+    Remove Electra-related files and test artifacts
+    
+    Deleted Electra prompt, test, and implementation files, as well as related conversation and documentation files. This cleanup removes unused or obsolete assets from the repository.
+
+commit 0646b508acc898fecc96dcb46004544a702c87c5
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Thu Sep 18 23:44:01 2025 -0600
+(base) paytonison@Asari area-51 % git push -u origin i-dont-know
+Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (2/2), 220 bytes | 220.00 KiB/s, done.
+Total 2 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+remote: 
+remote: Create a pull request for 'i-dont-know' on GitHub by visiting:
+remote:      https://github.com/paytonison/area-51/pull/new/i-dont-know
+remote: 
+To https://github.com/paytonison/area-51.git
+ * [new branch]      i-dont-know -> i-dont-know
+branch 'i-dont-know' set up to track 'origin/i-dont-know'.
+(base) paytonison@Asari area-51 % git push
+Everything up-to-date
+(base) paytonison@Asari area-51 % ls
+tomorrow.txt
+(base) paytonison@Asari area-51 % gm
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % ls
+naturally.txt
+(base) paytonison@Asari area-51 % log
+usage:
+    log <command>
+
+global options:
+    -?, --help
+    -q, --quiet
+    -v, --verbose
+
+commands:
+    collect         gather system logs into a log archive
+    config          view/change logging system settings
+    diagnose        diagnose an archive for a variety of issues
+    erase           delete system logging data
+    repack          repack a log archive using a predicate
+    show            view/search system logs
+    stream          watch live system logs
+    stats           show system logging statistics
+
+further help:
+    log help <command>
+    log help predicates
+    log help shorthand
+(base) paytonison@Asari area-51 % git log
+commit 765098cff54c1c89692b8d1248d532c394bd5eb0 (HEAD -> main, origin/who, origin/main, origin/HEAD, who)
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 28 21:29:51 2025 -0600
+
+    m
+
+commit dd424fa737ee27f070346971c1c4541dcccde92c
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 28 21:28:22 2025 -0600
+
+    1
+
+commit b2070f3a8ca2acd7f37eddc0b66474fc1e81fc87
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Sun Sep 21 22:59:08 2025 -0600
+
+    Remove Electra-related files and test artifacts
+    
+    Deleted Electra prompt, test, and implementation files, as well as related conversation and documentation files. This cleanup removes unused or obsolete assets from the repository.
+
+commit 0646b508acc898fecc96dcb46004544a702c87c5
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Thu Sep 18 23:44:01 2025 -0600
+
+    trent
+
+commit 255e3a86c97f6961d0ab88efa15d2acaa5f5835c
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Thu Sep 18 23:33:41 2025 -0600
+
+    mine
+
+commit 351d428ff4e7c11251e413e791db851bbfeece51
+Author: Payton Ison <paytonison@icloud.com>
+Date:   Wed Sep 10 01:37:41 2025 -0600
+(base) paytonison@Asari area-51 % gm
+Already on 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari area-51 % gb
+  i-dont-know
+* main
+  what
+  who
+(base) paytonison@Asari area-51 % gs
+## main...origin/main
+(base) paytonison@Asari area-51 % git switch i-dont-know
+Switched to branch 'i-dont-know'
+Your branch is up to date with 'origin/i-dont-know'.
+(base) paytonison@Asari area-51 % ls
+tomorrow.txt
+(base) paytonison@Asari area-51 % mkdir today
+(base) paytonison@Asari area-51 % cd
+(base) paytonison@Asari ~ % cd area-51 
+(base) paytonison@Asari area-51 % ls
+today		tomorrow.txt
+(base) paytonison@Asari area-51 % cd today 
+(base) paytonison@Asari today % ls
+(base) paytonison@Asari today % nvim i-dont-give-a-damn.txt
+(base) paytonison@Asari today % ls
+i-dont-give-a-damn.txt
+(base) paytonison@Asari today % gm
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+(base) paytonison@Asari today % git merge i-dont-know
+Updating 765098c..9ce74a0
+Fast-forward
+ naturally.txt | 14 --------------
+ tomorrow.txt  |  3 +++
+ 2 files changed, 3 insertions(+), 14 deletions(-)
+ delete mode 100644 naturally.txt
+ create mode 100644 tomorrow.txt
+(base) paytonison@Asari today % git add .
+(base) paytonison@Asari today % git commit -m "m"
+[main b0e65c2] m
+ 1 file changed, 6 insertions(+)
+ create mode 100644 today/i-dont-give-a-damn.txt
+(base) paytonison@Asari today % git push
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 10 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 690 bytes | 690.00 KiB/s, done.
+Total 4 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/paytonison/area-51.git
+   765098c..b0e65c2  main -> main
+(base) paytonison@Asari today % 
